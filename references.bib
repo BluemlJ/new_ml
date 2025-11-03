@@ -1,24 +1,11 @@
 
-@article{kohaut2025tits,
-  anote = {./images/kohaut2025tits.png},
-  author={Simon Kohaut and Benedict Flade and Daniel Ochs  and Devendra Singh Dhami and Julian Eggert and Kristian Kersting},
-  journal={IEEE Transactions on Intelligent Transportation Systems},
-  title={Probabilistic Mission Design for Neuro-Symbolic Unmanned Aircraft Systems},
-  year={2025},
-  volume={},
-  number={},
-  pages={1-10},
-  keywords={Probabilistic logic, Active appearance model, Risk management, Unmanned aircraft navigation, Neuro-symbolic AI},
-  abstract = {Advanced Air Mobility (AAM) is a growing field that demands accurate and trustworthy models of legal concepts and restrictions for navigating Unmanned Aircraft Systems (UAS). In addition, any implementation of AAM needs to face the challenges posed by inherently dynamic and uncertain human-inhabited spaces robustly. Nevertheless, the employment of UAS beyond visual line of sight (BVLOS) is an endearing task that promises to significantly enhance today’s logistics and emergency response capabilities. Hence, we propose Probabilistic Mission Design (ProMis), a novel neuro-symbolic approach to navigating UAS within legal frameworks. ProMis is an interpretable and adaptable system architecture that links uncertain geospatial data and noisy perception with declarative, Hybrid Probabilistic Logic Programs (HPLP) to reason over the agent’s state space and its legality. To inform planning with legal restrictions and uncertainty in mind, ProMis yields Probabilistic Mission Landscapes (PML). These scalar fields quantify the belief that the HPLP is satisfied across the agent’s state space. Extending prior work on ProMis’ reasoning capabilities and computational characteristics, we show its integration with potent machine learning models such as Large Language Models (LLM) and Transformer-based vision models. Hence, our experiments underpin the application of ProMis with multi-modal input data and how our method applies to many AAM scenarios.},
-  url={https://doi.org/10.1109/TITS.2025.3609835}}
-
-  @article{dutta2025,
+@article{dutta2025,
     anote = {./images/dutta2025.png},
     author = {Subhabrata Dutta  and Timo Kaufmann and Goran Glavas and Ivan Habernal and Kristian Kersting and Frauke Kreuter and Mira Mezini and Iryna Gurevychand Eyke Hüllermeier and Hinrich Schütze},
     title = {Problem Solving Through Human-AI Preference-Based Cooperation},
     journal = {Computational Linguistics},
     pages = {1-35},
-    year = {2025},
+    year = {2025}, 
     month = {07},
 		keywords = {Human-AI cooperation, AI-in-the-loop, Preference-based learning, Co-construction, Complex problem solving, Interactive AI systems},
     abstract = {While there is a widespread belief that artificial general intelligence (AGI) – or even superhuman AI – is imminent, complex problems in expert domains are far from being solved. We argue that such problems require human-AI cooperation and that the current state of the art in generative AI is unable to play the role of a reliable partner due to a multitude of shortcomings, including difficulty in keeping track of a complex solution artifact (e.g., a software program), limited support for versatile human preference expression and lack of adapting to human preference in an interactive setting. To address these challenges, we propose HAI-Co2, a novel human-AI co-construction framework.We take first steps towards a formalization of HAI-Co2 and discuss the difficult open research problems that it faces.},
@@ -28,17 +15,6 @@
     eprint = {https://direct.mit.edu/coli/article-pdf/doi/10.1162/coli.a.19/2539252/coli.a.19.pdf}
 }
 
-
-@article{busch025scc,
-	anote = {./images/busch025scc.png},
-	author = {Florian Peter Busch and Moritz Willig and Matej Zecevic and Kristian Kersting and Devendra Singh Dhami},
-	journal = {Transactions on Machine Learning Research (TMLR)},
-	keywords = {Structural Causal Circuits, Causality, Probabilistic Circuits, Ladder of Causation, Interventions, Counterfactual Reasoning, Tractable Inference},
-	note = {The complexity and vastness of our world can require large models with numerous variables. Unfortunately, coming up with a model that is both accurate and able to provide predictions in a reasonable amount of time can prove difficult. One possibility to help overcome such problems is sum-product networks (SPNs), probabilistic models with the ability to tractably perform inference in linear time. In this paper, we extend SPNs' capabilities to the field of causality and introduce the family of structural causal circuits (SCCs), a type of SPNs capable of answering causal questions. Starting from conventional SPNs, we ``climb the ladder of causation'' and show how SCCs can represent not only observational but also interventional and counterfactual problems. We demonstrate successful application in different settings, ranging from simple binary variables to physics-based simulations.},
-	title = {Structural Causal Circuits: Probabilistic Circuits Climbing All Rungs of Pearl's Ladder of Causation},
-	url = {https://openreview.net/pdf?id=25XyUTICdZ},
-  crossreference = {https://github.com/olfub/SCC},
-	year = {2025}}
 
 
 @inproceedings{haerle2025gsae,
@@ -54,7 +30,7 @@
 
 @inproceedings{willig2025dynamic,
 	anote = {./images/willig2025dynamic.png},
-	author = {Moritz Willig and Tim Woydt and Devendra Singh Dhami and Kristian Kersting},
+	author = {Moritz Willig and Tim Tobiasch and Devendra Singh Dhami and Kristian Kersting},
 	booktitle = {Proceedings of the 39th Conference on Neural Information Processing Systems (NeurIPS)},
 	keywords = {Meta-Causality, Causal Dynamics, Decision-Making, Reflection},
   note = {Many causal inference frameworks rely on a staticity assumption, where repeated interventions are expected to yield consistent outcomes, often summarized by metrics like the Average Treatment Effect (ATE). This assumption, however, frequently fails in dynamic environments where interventions can alter the system's underlying causal structure, rendering traditional `static' ATE insufficient or misleading. Recent works on meta-causal models (MCM) offer a promising avenue by enabling qualitative reasoning over evolving relationships. In this work, we propose a specific class of MCM with desirable properties for explicitly modeling and predicting intervention outcomes under meta-causal dynamics. Through expository examples in high-impact domains of medical treatment and judicial decision-making, we highlight the severe consequences that arise when system dynamics are neglected and demonstrate the successful application of meta-causal strategies to navigate these challenges.},
@@ -87,7 +63,7 @@
  anote = {./images/steinmann2025occb.png},
  author = {David Steinmann and Wolfgang Stammer and Antonia Wüst and Kristian Kersting},
  booktitle = {Proceedings of the 39th Conference on Neural Information Processing Systems (NeurIPS)},
- keywords = {Concept Bottlenecks, Concept Learning, Object Centric Learning, Interpretability},
+ keywords = {Concept Bottlenecks, Cncept Learning, Object Centric Learning, Interpretability},
  note = {Developing high-performing, yet interpretable models remains a critical challenge in modern AI. Concept-based models (CBMs) attempt to address this by extracting human-understandable concepts from a global encoding (e.g., image encoding) and then applying a linear classifier on the resulting concept activations, enabling transparent decision-making. However, their reliance on holistic image encodings limits their expressiveness in object-centric real-world settings and thus hinders their ability to solve complex vision tasks beyond single-label classification. To tackle these challenges, we introduce Object-Centric Concept Bottlenecks (OCB), a framework that combines the strengths of CBMs and pre-trained object-centric foundation models, boosting performance and interpretability. We evaluate OCB on complex image datasets and conduct a comprehensive ablation study to analyze key components of the framework, such as strategies for aggregating object-concept encodings. The results show that OCB outperforms traditional CBMs and allows one to make interpretable decisions for complex visual tasks.},
  title = {Object-Centric Concept-Bottlenecks},
  url = {},
@@ -184,7 +160,7 @@
 @inproceedings{turan2025icml,
 	anote = {./images/turan_ncv.png},
 	author = {Berkant Turan and Suhrab Asadulla and David Steinmann and Wolfgang Stammer and Sebastian Pokutta},
-	booktitle = {Working Notes of the Actionable Interpretability Workshop (at ICML 2025)},
+	booktitle = {Working Nodes of the Actionable Interpretability Workshop @ICML 2025},
 	keywords = {Multi-Agent Learning, Prover-Verifier Games, Concept Encodings, Explainable AI},
 	title = {Neural Concept Verifier: Scaling Prover-Verifier Games via Concept Encodings},
 	url = {https://arxiv.org/pdf/2507.07532},
@@ -990,7 +966,7 @@
 	year = {2024},
 	bdsk-url-1 = {https://www.aiml.informatik.tu-darmstadt.de/papers/brack2024unleashing.pdf}}
 
-@article{friedrich2025fair, 
+@article{friedrich2024fair,
 	anote = {./images/ffriedrich_fair_2023.png},
 	author = {Felix Friedrich and Manuel Brack and Dominik Hintersdorf and Lukas Struppek and Patrick Schramowski and Sasha Luccioni and Kristian Kersting},
 	doi = {https://doi.org/10.1007/s43681-024-00531-5},
@@ -998,11 +974,9 @@
 	keywords = {Fairness, Text-to-Image Synthesis, Text-Guided Image Generation, Stable Diffusion, AI Ethics},
 	note = {Generative AI models have recently achieved astonishing results in quality and are consequently employed in a fast-growing number of applications. However, since they are highly data-driven, relying on billion-sized datasets randomly scraped from the internet, they also suffer from degenerated and biased human behavior, as we demonstrate. In fact, they may even reinforce such biases. To not only uncover but also combat these undesired effects, we present a novel strategy, called Fair Diffusion, to attenuate biases after the deployment of generative text-to-image models. Specifically, we demonstrate shifting a bias, based on human instructions, in any direction yielding arbitrarily new proportions for, e.g., identity groups. As our empirical evaluation demonstrates, this introduced control enables instructing generative image models on fairness, with no data filtering and additional training required.},
 	publisher = {Springer},
-  volume = {5},
-  numbers = {3},
 	title = {Auditing and Instructing Text-to-Image Generation Models on Fairness},
 	url = {https://link.springer.com/content/pdf/10.1007/s43681-024-00531-5.pdf},
-	year = {2025},
+	year = {2024},
 	bdsk-url-1 = {https://link.springer.com/content/pdf/10.1007/s43681-024-00531-5.pdf},
 	bdsk-url-2 = {https://doi.org/10.1007/s43681-024-00531-5}}
 
