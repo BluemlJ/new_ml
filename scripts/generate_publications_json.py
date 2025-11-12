@@ -13,7 +13,6 @@ except ImportError as exc:
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BIB_PATH = REPO_ROOT / "references.bib"
 JSON_OUTPUT = REPO_ROOT / "build" / "publications.json"
-JS_OUTPUT = REPO_ROOT / "build" / "publications.js"
 DATA_JS_OUTPUT = REPO_ROOT / "build" / "publications-data.js"
 IMAGES_DIR = REPO_ROOT / "images"
 DEFAULT_IMAGE = "aiml2020small.png"
@@ -113,15 +112,11 @@ def main() -> None:
         json.dump(publications, json_file, indent=2, ensure_ascii=False)
         json_file.write("\n")
 
-    with JS_OUTPUT.open("w", encoding="utf-8") as js_file:
-        js_file.write("window.__AIML_PUBLICATIONS = ")
-        json.dump(publications, js_file, ensure_ascii=False)
-        js_file.write(";\n")
-
     with DATA_JS_OUTPUT.open("w", encoding="utf-8") as data_js_file:
         data_js_file.write("window.AIML_PUBLICATIONS = ")
         json.dump(publications, data_js_file, ensure_ascii=False)
         data_js_file.write(";\n")
+
 
     print(f"Wrote {len(publications)} publications to {JSON_OUTPUT}")
 

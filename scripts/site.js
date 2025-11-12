@@ -322,8 +322,9 @@
   const PeopleModule = {
     defaultImage: './images/group_picture_june23.jpg',
 
-    createCard(person = {}) {
-      const link = person.link || (person.id ? `./people/${person.id}/index.html` : '');
+    createCard(person = {}, options = {}) {
+      const disableLinks = Boolean(options.disableLinks);
+      const link = disableLinks ? '' : (person.link || (person.id ? `./people/${person.id}/index.html` : ''));
       const element = Utils.createElement(link ? 'a' : 'article', {
         className: 'people-card'
       });
@@ -431,7 +432,8 @@
         const peopleList = Array.isArray(section.people) ? section.people : [];
         if (peopleList.length) {
           const grid = Utils.createElement('div', { className: 'people-card-grid' });
-          peopleList.forEach((person) => grid.append(PeopleModule.createCard(person)));
+          const disableLinks = section.id === 'alumni';
+          peopleList.forEach((person) => grid.append(PeopleModule.createCard(person, { disableLinks })));
           body.append(grid);
         } else {
           body.append(Utils.createElement('p', {
