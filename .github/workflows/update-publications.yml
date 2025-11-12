@@ -3,7 +3,7 @@ name: Update publications data
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - references.bib
       - scripts/generate_publications_json.py
