@@ -2282,7 +2282,7 @@ var bibtexify = (function($) {
             'book': 'Book',
             'conference': 'Conference',
             'inbook': 'Chapter',
-            'incollection': 'Collection',
+            'incollection': 'Workshop',
             'inproceedings': 'Conference',
             'manual': 'Manual',
             'mastersthesis': 'Thesis',
@@ -2322,6 +2322,661 @@ var bibtexify = (function($) {
 
     };
 
+    var ProfilePublicationsEnhancer = (function buildProfilePublicationEnhancer() {
+        var arrayProto = Array.prototype;
+        var objToString = Object.prototype.toString;
+        var stateStore = (typeof WeakMap === 'function') ? new WeakMap() : null;
+        var toolbarId = 0;
+
+        function createState() {
+            return {
+                entries: [],
+                filtered: [],
+                filters: { search: '', year: 'all', type: 'all' },
+                elements: {
+                    container: null,
+                    toolbar: null,
+                    summary: null,
+                    list: null,
+                    search: null,
+                    year: null,
+                    type: null
+                }
+            };
+        }
+
+        function isArrayValue(value) {
+            if (typeof Array.isArray === 'function') {
+                return Array.isArray(value);
+            }
+            return objToString.call(value) === '[object Array]';
+        }
+
+        function cloneEntries(entries) {
+            if (!entries) {
+                return [];
+            }
+            if (isArrayValue(entries)) {
+                return entries.slice();
+            }
+            if (typeof entries.length === 'number') {
+                return arrayProto.slice.call(entries);
+            }
+            return [];
+        }
+
+        function hasDOMSupport() {
+            return typeof document !== 'undefined';
+        }
+
+        function findWrapper($table) {
+            if (!hasDOMSupport() || !$table || !$table.length) {
+                return null;
+            }
+            var wrapper = $table.closest('.profile-publications-table');
+            if (!wrapper.length) {
+                return null;
+            }
+            return wrapper.get(0);
+        }
+
+        function getState(wrapperEl) {
+            if (!wrapperEl) {
+                return null;
+            }
+            var state;
+            if (stateStore) {
+                state = stateStore.get(wrapperEl);
+                if (!state) {
+                    state = createState();
+                    stateStore.set(wrapperEl, state);
+                }
+            } else {
+                state = wrapperEl.__profilePublicationsState;
+                if (!state) {
+                    state = createState();
+                    wrapperEl.__profilePublicationsState = state;
+                }
+            }
+            return state;
+        }
+
+        function parseYear(value) {
+            if (!value) {
+                return NaN;
+            }
+            var match = String(value).match(/\d{4}/);
+            if (!match) {
+                return NaN;
+            }
+            return parseInt(match[0], 10);
+        }
+
+        function sortEntries(entries) {
+            return entries.slice().sort(function(a, b) {
+                var yearA = parseYear(a.year);
+                var yearB = parseYear(b.year);
+                if (!isNaN(yearA) && !isNaN(yearB) && yearA !== yearB) {
+                    return yearB - yearA;
+                }
+                if (a.title && b.title) {
+                    var titleA = a.title.toLowerCase();
+                    var titleB = b.title.toLowerCase();
+                    if (titleA !== titleB) {
+                        return titleA < titleB ? -1 : 1;
+                    }
+                }
+                return 0;
+            });
+        }
+
+        function formatAuthors(authorField) {
+            if (!authorField) {
+                return '';
+            }
+            if (typeof authorField === 'string') {
+                return authorField;
+            }
+            if (!isArrayValue(authorField)) {
+                return '';
+            }
+            var names = [];
+            for (var i = 0; i < authorField.length; i++) {
+                var author = authorField[i] || {};
+                var parts = [];
+                if (author.first) { parts.push(author.first); }
+                if (author.von) { parts.push(author.von); }
+                if (author.last) { parts.push(author.last); }
+                if (author.jr) { parts.push(author.jr); }
+                var fullName = parts.join(' ').trim();
+                if (fullName) {
+                    names.push(fullName);
+                }
+            }
+            if (!names.length) {
+                return '';
+            }
+            var limit = 10;
+            if (names.length <= limit) {
+                return names.join(', ');
+            }
+            var truncated = names.slice(0, limit).join(', ');
+            return truncated + ', et al.';
+        }
+
+        function buildFigure(entry) {
+            var source = entry.anote;
+            if (!source) {
+                return null;
+            }
+            var figure = document.createElement('div');
+            figure.className = 'publication-card-figure';
+            var image = document.createElement('img');
+            image.src = source;
+            image.alt = entry.title || 'Publication illustration';
+            figure.appendChild(image);
+            return figure;
+        }
+
+        function resolveVenue(entry) {
+            var fields = ['booktitle', 'journal', 'howpublished', 'publisher',
+                'institution', 'organization', 'school', 'series', 'note'];
+            for (var i = 0; i < fields.length; i++) {
+                var key = fields[i];
+                if (entry[key]) {
+                    return entry[key];
+                }
+            }
+            return '';
+        }
+
+        function buildTopics(entry) {
+            if (!entry.keywords) {
+                return [];
+            }
+            var raw = entry.keywords.split(/[,;]+/);
+            var cleaned = [];
+            for (var i = 0; i < raw.length; i++) {
+                var item = raw[i].trim();
+                if (item) {
+                    cleaned.push(item);
+                }
+            }
+            return cleaned.slice(0, 3);
+        }
+
+        function getTypeLabel(entry) {
+            if (!entry || !entry.entryType) {
+                return entry && entry.entryType ? entry.entryType : '';
+            }
+            return bib2html.labels[entry.entryType] || entry.entryType;
+        }
+
+        function createCard(entry) {
+            var hasLink = Boolean(entry.url);
+            var card = document.createElement(hasLink ? 'a' : 'article');
+            card.className = 'publication-card profile-publication-card';
+            if (hasLink) {
+                card.href = entry.url;
+                card.target = '_blank';
+                card.rel = 'noopener';
+            }
+
+            var figure = buildFigure(entry);
+            if (figure) {
+                card.appendChild(figure);
+            }
+
+            var meta = document.createElement('div');
+            meta.className = 'publication-card-meta';
+            if (entry.year) {
+                var yearBadge = document.createElement('span');
+                yearBadge.className = 'publication-card-badge publication-card-badge-year';
+                yearBadge.textContent = entry.year;
+                meta.appendChild(yearBadge);
+            }
+            var typeLabel = getTypeLabel(entry);
+            if (typeLabel) {
+                var typeBadge = document.createElement('span');
+                typeBadge.className = 'publication-card-badge';
+                typeBadge.textContent = typeLabel;
+                meta.appendChild(typeBadge);
+            }
+            if (meta.childNodes.length) {
+                card.appendChild(meta);
+            }
+
+            var title = document.createElement('h3');
+            title.className = 'publication-card-title h5';
+            title.textContent = entry.title || 'Untitled publication';
+            card.appendChild(title);
+
+            var authors = formatAuthors(entry.author);
+            if (authors) {
+                var authorText = document.createElement('p');
+                authorText.className = 'publication-card-authors';
+                authorText.textContent = authors;
+                card.appendChild(authorText);
+            }
+
+            var venue = resolveVenue(entry);
+            if (venue) {
+                var venueEl = document.createElement('p');
+                venueEl.className = 'publication-card-venue';
+                venueEl.textContent = venue;
+                card.appendChild(venueEl);
+            }
+
+            var topics = buildTopics(entry);
+            if (topics.length) {
+                var topicWrap = document.createElement('div');
+                topicWrap.className = 'publication-card-topics';
+                for (var i = 0; i < topics.length; i++) {
+                    var chip = document.createElement('span');
+                    chip.className = 'publication-card-topic';
+                    chip.textContent = topics[i];
+                    topicWrap.appendChild(chip);
+                }
+                card.appendChild(topicWrap);
+            }
+
+            if (hasLink) {
+                var cta = document.createElement('span');
+                cta.className = 'publication-card-cta';
+                cta.textContent = 'Open publication';
+                var icon = document.createElement('span');
+                icon.className = 'publication-card-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = '→';
+                cta.appendChild(icon);
+                card.appendChild(cta);
+            }
+
+            return card;
+        }
+
+        function findMetricsRoot(wrapperEl) {
+            if (!wrapperEl) {
+                return null;
+            }
+            var current = wrapperEl;
+            while (current) {
+                if (current.querySelector && current.querySelector('[data-profile-pubs]')) {
+                    return current;
+                }
+                current = current.parentElement;
+            }
+            return null;
+        }
+
+        function getLatestYear(entries) {
+            var latest = null;
+            for (var i = 0; i < entries.length; i++) {
+                var year = parseYear(entries[i].year);
+                if (!isNaN(year)) {
+                    if (latest === null || year > latest) {
+                        latest = year;
+                    }
+                }
+            }
+            return latest;
+        }
+
+        function getTopType(entries) {
+            var counts = {};
+            for (var i = 0; i < entries.length; i++) {
+                var label = getTypeLabel(entries[i]) || 'Publication';
+                if (counts[label]) {
+                    counts[label] += 1;
+                } else {
+                    counts[label] = 1;
+                }
+            }
+            var leader = null;
+            var leaderCount = 0;
+            for (var key in counts) {
+                if (counts.hasOwnProperty(key)) {
+                    if (!leader || counts[key] > leaderCount) {
+                        leader = key;
+                        leaderCount = counts[key];
+                    }
+                }
+            }
+            return leader;
+        }
+
+        function updateMetrics(wrapperEl, entries) {
+            var metricsRoot = findMetricsRoot(wrapperEl);
+            if (!metricsRoot) {
+                return;
+            }
+            var totalEl = metricsRoot.querySelector('[data-profile-pubs="total"]');
+            if (totalEl) {
+                totalEl.textContent = entries.length ? entries.length : '0';
+            }
+            var latestEl = metricsRoot.querySelector('[data-profile-pubs="latest"]');
+            if (latestEl) {
+                var latestYear = getLatestYear(entries);
+                latestEl.textContent = latestYear || '–';
+            }
+            var typeEl = metricsRoot.querySelector('[data-profile-pubs="type"]');
+            if (typeEl) {
+                var topType = getTopType(entries);
+                typeEl.textContent = topType || '–';
+            }
+        }
+
+        function hideLegacyTable(wrapperEl) {
+            if (!wrapperEl || !wrapperEl.classList) {
+                return;
+            }
+            wrapperEl.classList.add('profile-publications-table--enhanced');
+        }
+
+        function ensureStructure(wrapperEl, state) {
+            if (!state.elements.container) {
+                var container = document.createElement('div');
+                container.className = 'profile-publications-enhanced';
+                wrapperEl.insertBefore(container, wrapperEl.firstChild);
+                state.elements.container = container;
+            }
+            if (!state.elements.toolbar) {
+                state.elements.toolbar = createToolbar(state);
+                state.elements.container.appendChild(state.elements.toolbar);
+            }
+            if (!state.elements.summary) {
+                var summary = document.createElement('p');
+                summary.className = 'profile-publications-summary text-muted small';
+                summary.setAttribute('aria-live', 'polite');
+                state.elements.container.appendChild(summary);
+                state.elements.summary = summary;
+            }
+            if (!state.elements.list) {
+                var list = document.createElement('div');
+                list.className = 'profile-publications-list publication-list';
+                state.elements.container.appendChild(list);
+                state.elements.list = list;
+            }
+        }
+
+        function createToolbar(state) {
+            var toolbar = document.createElement('div');
+            toolbar.className = 'publication-toolbar profile-publications-toolbar';
+
+            var grid = document.createElement('div');
+            grid.className = 'publication-filter-grid';
+
+            var searchId = uniqueId('profile-pub-search');
+            var searchFilter = document.createElement('div');
+            searchFilter.className = 'publication-filter';
+            var searchLabel = document.createElement('label');
+            searchLabel.className = 'form-label';
+            searchLabel.setAttribute('for', searchId);
+            searchLabel.textContent = 'Search publications';
+            var searchInput = document.createElement('input');
+            searchInput.type = 'search';
+            searchInput.id = searchId;
+            searchInput.className = 'form-control publication-input';
+            searchInput.placeholder = 'Search by title, author, venue or keyword';
+            searchFilter.appendChild(searchLabel);
+            searchFilter.appendChild(searchInput);
+            grid.appendChild(searchFilter);
+
+            var yearId = uniqueId('profile-pub-year');
+            var yearFilter = document.createElement('div');
+            yearFilter.className = 'publication-filter';
+            var yearLabel = document.createElement('label');
+            yearLabel.className = 'form-label';
+            yearLabel.setAttribute('for', yearId);
+            yearLabel.textContent = 'Year';
+            var yearSelect = document.createElement('select');
+            yearSelect.id = yearId;
+            yearSelect.className = 'form-select publication-input';
+            yearFilter.appendChild(yearLabel);
+            yearFilter.appendChild(yearSelect);
+            grid.appendChild(yearFilter);
+
+            var typeId = uniqueId('profile-pub-type');
+            var typeFilter = document.createElement('div');
+            typeFilter.className = 'publication-filter';
+            var typeLabel = document.createElement('label');
+            typeLabel.className = 'form-label';
+            typeLabel.setAttribute('for', typeId);
+            typeLabel.textContent = 'Type';
+            var typeSelect = document.createElement('select');
+            typeSelect.id = typeId;
+            typeSelect.className = 'form-select publication-input';
+            typeFilter.appendChild(typeLabel);
+            typeFilter.appendChild(typeSelect);
+            grid.appendChild(typeFilter);
+
+            toolbar.appendChild(grid);
+
+            searchInput.addEventListener('input', function() {
+                handleFilterChange(state, 'search', searchInput.value || '');
+            });
+            yearSelect.addEventListener('change', function() {
+                handleFilterChange(state, 'year', yearSelect.value || 'all');
+            });
+            typeSelect.addEventListener('change', function() {
+                handleFilterChange(state, 'type', typeSelect.value || 'all');
+            });
+
+            state.elements.search = searchInput;
+            state.elements.year = yearSelect;
+            state.elements.type = typeSelect;
+
+            return toolbar;
+        }
+
+        function uniqueId(prefix) {
+            toolbarId += 1;
+            return prefix + '-' + toolbarId;
+        }
+
+        function populateSelect(select, options, defaultLabel) {
+            if (!select) {
+                return;
+            }
+            select.innerHTML = '';
+            var defaultOption = document.createElement('option');
+            defaultOption.value = 'all';
+            defaultOption.textContent = defaultLabel;
+            select.appendChild(defaultOption);
+            for (var i = 0; i < options.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = options[i];
+                opt.textContent = options[i];
+                select.appendChild(opt);
+            }
+        }
+
+        function buildYearOptions(entries) {
+            var years = [];
+            var seen = {};
+            for (var i = 0; i < entries.length; i++) {
+                var year = parseYear(entries[i].year);
+                if (isNaN(year)) {
+                    continue;
+                }
+                var key = String(year);
+                if (!seen[key]) {
+                    years.push(key);
+                    seen[key] = true;
+                }
+            }
+            years.sort(function(a, b) { return parseInt(b, 10) - parseInt(a, 10); });
+            return years;
+        }
+
+        function buildTypeOptions(entries) {
+            var labels = [];
+            var seen = {};
+            for (var i = 0; i < entries.length; i++) {
+                var label = getTypeLabel(entries[i]);
+                if (!label) {
+                    continue;
+                }
+                if (!seen[label]) {
+                    labels.push(label);
+                    seen[label] = true;
+                }
+            }
+            labels.sort();
+            return labels;
+        }
+
+        function handleFilterChange(state, key, value) {
+            if (!state || !state.filters) {
+                return;
+            }
+            if (state.filters[key] === value) {
+                return;
+            }
+            state.filters[key] = value;
+            applyAndRender(state);
+        }
+
+        function applyFilters(state) {
+            var entries = state.entries || [];
+            var filters = state.filters || {};
+            var query = (filters.search || '').toLowerCase();
+            var yearFilter = filters.year || 'all';
+            var typeFilter = filters.type || 'all';
+
+            var results = [];
+            for (var i = 0; i < entries.length; i++) {
+                var entry = entries[i];
+                if (yearFilter !== 'all') {
+                    if (String(entry.year) !== yearFilter && String(parseYear(entry.year)) !== yearFilter) {
+                        continue;
+                    }
+                }
+                if (typeFilter !== 'all') {
+                    var entryTypeLabel = getTypeLabel(entry);
+                    if (entryTypeLabel !== typeFilter) {
+                        continue;
+                    }
+                }
+                if (query && !matchesSearch(entry, query)) {
+                    continue;
+                }
+                results.push(entry);
+            }
+            state.filtered = results;
+            return results;
+        }
+
+        function matchesSearch(entry, query) {
+            var haystack = [];
+            if (entry.title) {
+                haystack.push(entry.title);
+            }
+            var authors = formatAuthors(entry.author);
+            if (authors) {
+                haystack.push(authors);
+            }
+            var venue = resolveVenue(entry);
+            if (venue) {
+                haystack.push(venue);
+            }
+            if (entry.keywords) {
+                haystack.push(entry.keywords);
+            }
+            var typeLabel = getTypeLabel(entry);
+            if (typeLabel) {
+                haystack.push(typeLabel);
+            }
+            var joined = haystack.join(' ').toLowerCase();
+            return joined.indexOf(query) !== -1;
+        }
+
+        function applyAndRender(state) {
+            if (!state || !state.elements.list) {
+                return;
+            }
+            var filtered = applyFilters(state);
+            renderList(state.elements.list, filtered);
+            updateSummary(state, filtered.length, state.entries.length);
+        }
+
+        function renderList(listEl, entries) {
+            listEl.innerHTML = '';
+            if (!entries.length) {
+                listEl.innerHTML = '<p class="profile-publications-empty text-muted mb-0">No publications match your filters yet. Try another search.</p>';
+                return;
+            }
+            for (var i = 0; i < entries.length; i++) {
+                var card = createCard(entries[i]);
+                if (card) {
+                    listEl.appendChild(card);
+                }
+            }
+        }
+
+        function updateSummary(state, visibleCount, totalCount) {
+            if (!state.elements.summary) {
+                return;
+            }
+            var text = 'Showing ' + visibleCount + ' of ' + totalCount + ' publications';
+            state.elements.summary.textContent = text;
+        }
+
+        function refreshFilterOptions(state) {
+            if (!state || !state.entries) {
+                return;
+            }
+            var years = buildYearOptions(state.entries);
+            var types = buildTypeOptions(state.entries);
+            var yearValue = state.filters.year;
+            var typeValue = state.filters.type;
+
+            populateSelect(state.elements.year, years, 'All years');
+            populateSelect(state.elements.type, types, 'All types');
+
+            if (years.indexOf(yearValue) === -1) {
+                state.filters.year = 'all';
+                if (state.elements.year) {
+                    state.elements.year.value = 'all';
+                }
+            } else if (state.elements.year) {
+                state.elements.year.value = yearValue;
+            }
+
+            if (types.indexOf(typeValue) === -1) {
+                state.filters.type = 'all';
+                if (state.elements.type) {
+                    state.elements.type.value = 'all';
+                }
+            } else if (state.elements.type) {
+                state.elements.type.value = typeValue;
+            }
+        }
+
+        function renderCards($table, entries) {
+            var wrapperEl = findWrapper($table);
+            if (!wrapperEl) {
+                return;
+            }
+            var state = getState(wrapperEl);
+            if (!state) {
+                return;
+            }
+
+            state.entries = sortEntries(cloneEntries(entries));
+            ensureStructure(wrapperEl, state);
+            refreshFilterOptions(state);
+            applyAndRender(state);
+            hideLegacyTable(wrapperEl);
+            updateMetrics(wrapperEl, state.entries);
+        }
+
+        return {
+            renderCards: renderCards
+        };
+    })();
+
+
     var Bib2HTML = function(data, $pubTable, options) {
         this.options = options;
         this.$pubTable = $pubTable;
@@ -2333,11 +2988,23 @@ var bibtexify = (function($) {
         var bibtex = new BibTex();
         bibtex.content = data;
         bibtex.parse();
-        var bibentries = [], len = bibtex.data.length;
+        var parsedEntries;
+        if (bibtex.data) {
+            if (typeof Array.isArray === 'function' && Array.isArray(bibtex.data)) {
+                parsedEntries = bibtex.data.slice();
+            } else if (typeof bibtex.data.length === 'number') {
+                parsedEntries = Array.prototype.slice.call(bibtex.data);
+            } else {
+                parsedEntries = [];
+            }
+        } else {
+            parsedEntries = [];
+        }
+        var bibentries = [], len = parsedEntries.length;
         var entryTypes = {};
         jQuery.extend(true, bib2html, this.options.bib2html);
         for (var index = 0; index < len; index++) {
-            var item = bibtex.data[index];
+            var item = parsedEntries[index];
             if (!item.year) {
               item.year = this.options.defaultYear || "To Appear";
             }
@@ -2515,6 +3182,8 @@ var bibtexify = (function($) {
         $(".bibclose", this.$pubTable).on('click', EventHandlers.hideabs);
         $(".abslink", this.$pubTable).on('click', EventHandlers.showabs);
         $(".absclose", this.$pubTable).on('click', EventHandlers.hideabs);
+
+        ProfilePublicationsEnhancer.renderCards(this.$pubTable, parsedEntries);
 
     };
     // updates the stats, called whenever a new bibtex entry is parsed
