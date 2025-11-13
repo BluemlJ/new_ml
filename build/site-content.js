@@ -116,6 +116,7 @@ window.AIML_SITE_CONTENT = {
         { "id": "wstammer", "name": "Dr. Wolfgang Stammer", "role": "Postdoc", "focus": "Explainable & Responsible AI" },
         { "id": "mbrack", "name": "Dr. Manuel Brack", "role": "Researcher", "focus": "Generative safety & alignment" },
         { "id": "dhintersdorf", "name": "Dr. Dominik Hintersdorf", "role": "Senior Researcher", "focus": "Trustworthy Machine Learning" },
+        { "id": "zyu", "name": "Dr. Zhongjie Yu", "role": "Postdoc", "focus": "Probabilistic modeling" },
         { "id": "jblueml", "name": "Jannis Blüml", "role": "PhD Candidate", "focus": "Reinforcement Learning & Neuro-Symbolic AI" },
         { "id": "sbraun", "name": "Steven Braun", "role": "PhD Candidate", "focus": "Probabilistic Circuits" },
         { "id": "fbusch", "name": "Florian Busch", "role": "PhD Candidate", "focus": "Causal AI & Probabilistic Circuits" },
@@ -163,8 +164,7 @@ window.AIML_SITE_CONTENT = {
       "title": "Alumni",
       "description": "Former AIML Lab members shaping AI in academia and industry worldwide.",
       "people": [
-        { "id": "lstruppek", "name": "Dr. Lukas Struppek", "role": "Senior Researcher", "focus": "Trustworthy Machine Learning" },
-        { "id": "zyu", "name": "Dr. Zhongjie Yu", "role": "Postdoc", "focus": "Probabilistic modeling" },
+        { "id": "lstruppek", "name": "Dr. Lukas Struppek", "role": "Alumnus", "focus": "FAR.AI" },
         { "id": "ddhami", "name": "Dr. Devendra Singh Dhami", "role": "Alumnus", "focus": "TU Eindhoven" },
         { "id": "cturan", "name": "Dr. Cigdem Turan-Schwiewager", "role": "Alumna", "focus": "Coach AI" },
         { "id": "mmundt", "name": "Dr. Martin Mundt", "role": "Alumnus", "focus": "University of Bremen" },
