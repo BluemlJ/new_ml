@@ -249,7 +249,7 @@
       || publication.organization
       || publication.school
       || publication.series
-      || publication.note;
+      || '';
     if (venue) {
       const venueEl = document.createElement('p');
       venueEl.className = 'publication-card-venue';
@@ -262,6 +262,52 @@
       topics.className = 'publication-card-topics';
       topics.textContent = publication.topics.slice(0, 3).join(', ');
       card.appendChild(topics);
+    }
+
+    const noteText = (publication.note || '').trim();
+    if (noteText) {
+      const noteEl = document.createElement('p');
+      noteEl.className = 'publication-card-note';
+      const label = document.createElement('span');
+      label.className = 'publication-card-note-label';
+      label.textContent = 'Abstract: ';
+      noteEl.appendChild(label);
+
+      const words = noteText.split(/\s+/).filter(Boolean);
+      const previewWords = words.slice(0, 5).join(' ');
+      const hasMore = words.length > 5;
+
+      const preview = document.createElement('span');
+      preview.className = 'publication-card-note-preview';
+      preview.textContent = hasMore ? `${previewWords}…` : previewWords;
+      noteEl.appendChild(preview);
+
+      if (hasMore) {
+        const full = document.createElement('span');
+        full.className = 'publication-card-note-full';
+        full.textContent = noteText;
+        full.hidden = true;
+        noteEl.appendChild(full);
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'publication-card-note-toggle';
+        toggle.textContent = 'Show Abstract';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          const nextState = !expanded;
+          toggle.setAttribute('aria-expanded', String(nextState));
+          preview.hidden = nextState;
+          full.hidden = !nextState;
+          toggle.textContent = nextState ? 'Hide Abstract' : 'Show Abstract';
+        });
+        noteEl.appendChild(toggle);
+      }
+
+      card.appendChild(noteEl);
     }
 
     const meta = document.createElement('div');

@@ -653,7 +653,6 @@
         || publication.organization
         || publication.school
         || publication.series
-        || publication.note
         || '';
       if (venue) {
         card.append(Utils.createElement('p', {
@@ -672,6 +671,53 @@
           }));
         });
         card.append(topicWrap);
+      }
+
+      const noteText = (publication.note || '').trim();
+      if (noteText) {
+        const noteWrap = document.createElement('p');
+        noteWrap.className = 'publication-card-note';
+
+        const label = document.createElement('span');
+        label.className = 'publication-card-note-label';
+        label.textContent = 'Abstract: ';
+        noteWrap.appendChild(label);
+
+        const words = noteText.split(/\s+/).filter(Boolean);
+        const hasMore = words.length > 5;
+        const previewText = hasMore ? `${words.slice(0, 5).join(' ')}…` : noteText;
+
+        const preview = document.createElement('span');
+        preview.className = 'publication-card-note-preview';
+        preview.textContent = previewText;
+        noteWrap.appendChild(preview);
+
+        if (hasMore) {
+          const full = document.createElement('span');
+          full.className = 'publication-card-note-full';
+          full.textContent = noteText;
+          full.hidden = true;
+          noteWrap.appendChild(full);
+
+         const toggle = document.createElement('button');
+         toggle.type = 'button';
+         toggle.className = 'publication-card-note-toggle';
+         toggle.textContent = 'Show Abstract';
+         toggle.setAttribute('aria-expanded', 'false');
+          toggle.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            const nextState = !expanded;
+            toggle.setAttribute('aria-expanded', String(nextState));
+            preview.hidden = nextState;
+            full.hidden = !nextState;
+            toggle.textContent = nextState ? 'Hide Abstract' : 'Show Abstract';
+          });
+          noteWrap.appendChild(toggle);
+        }
+
+        card.append(noteWrap);
       }
 
       if (hasLink) {
