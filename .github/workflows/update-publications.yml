@@ -33,7 +33,7 @@ jobs:
       - name: Commit and push updates
         run: |
           if git diff --quiet; then
-            echo "Changes detected, but no updates to commit. Something went wrong with your change."
+            echo "Changes detected in reference.bib, but no updates to commit. Something went wrong with your change."
             exit 1
           fi
           git config user.name "github-actions[bot]"
